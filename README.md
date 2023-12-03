@@ -1,3 +1,9 @@
+## Bloggie
+##### ***A MERN Stack based blog web application enabling users to register & login and perform CRUD (Create, Read, Update, Delete) operation on blogs.***
+##### ***Implemented user authentication and authorization using technologies such as 'Bcrypt' and 'JWT' to ensure seamless routing.***
+
+##### <ins>***Skills: MongoDB, ExpressJS, ReactJS, NodeJS***</ins>
+
 ## Project Initiation Steps
 ### **1. Perform the command ```yarn install``` inside following directories:** <br>
 - Bloggie-MERN
@@ -20,10 +26,11 @@
 
 ### **5. To run the app:** <br>
 - Run ```nodemon index.js``` command inside _'Bloggie-MERN/api'_ directory
-- Run ```yarn start``` command inside _'Bloggie-MERN/client'_ directory <br>
+- Run ```yarn start``` command inside _'Bloggie-MERN/client'_ directory
+- The application will run on http://localhost:3000
 
 ## Documentation 
-### **1. Database Schema:**
+### **Models:**
 - #### Post
   ```javascript
     const mongoose = require('mongoose');
@@ -62,116 +69,21 @@
     const UserModel = mongoose.model('User', userSchema);  
     module.exports = UserModel;
   ```
+<br>
 
-  ### **2. Routing:**
-  ```javascript
-    app.post('/register', async (req, res)=>{
-        const {username, password} = req.body;
-        try{
-            const userDoc = await User.create({username, password:bcrypt.hashSync(password, salt)});
-            /*alert(`Registeration Successful...\nUsername: ${userDoc.username}\nYou can login now...`);*/
-            res.json(userDoc);
-        }catch(e){
-            res.status(400).json(e.message);
-        }
-    });
-    
-    app.post('/login', async (req, res) => {
-        const {username, password} = req.body;
-        const userDoc = await User.findOne({username});
-        const passOk = bcrypt.compareSync(password, userDoc.password);
-        if(passOk){
-            jwt.sign({username, id:userDoc._id}, secrete, {}, (err, token) => {
-                if(err) throw err;
-                res.cookie('token', token).json({
-                    id: userDoc._id,
-                    username
-                });
-            });
-        }else{
-            res.status(400).json('Wrong Credentials...');
-        }
-    });
-    
-    app.get('/profile', (req, res) => {
-        const {token} = req.cookies;
-        jwt.verify(token, secrete, {}, (err, info) => {
-            if(err) throw err;
-            res.json(info);
-        });
-    });
-    
-    app.post('/logout', (req, res) => {
-        res.cookie('token', '').json('ok')
-    });
-    
-    app.post('/post', uploadMiddleware.single('file'), async (req,res) => {
-        const {originalname,path} = req.file;
-        const parts = originalname.split('.');
-        const ext = parts[parts.length - 1];
-        const newPath = path+'.'+ext;
-        const newPath1 = newPath.substring(0, 7)+ '/' +newPath.substring(8, newPath.length);
-        fs.renameSync(path, newPath1);
-      
-        const {token} = req.cookies;
-        jwt.verify(token, secrete, {}, async (err,info) => {
-          if (err) throw err;
-          const {title,summary,content} = req.body;
-          const postDoc = await Post.create({
-            title,
-            summary,
-            content,
-            cover:newPath1,
-            author:info.id,
-          });
-          res.json(postDoc);
-        });  
-    });
-    
-    app.get('/post', async (req,res) => {
-        res.json(
-          await Post.find()
-            .populate('author', ['username'])
-            .sort({createdAt: -1})
-            .limit(20)
-        );
-    });
-    
-    app.put('/post',uploadMiddleware.single('file'), async (req,res) => {
-        let newPath = null;
-        let newPath1 = null;
-    
-        if (req.file) {
-          const {originalname,path} = req.file;
-          const parts = originalname.split('.');
-          const ext = parts[parts.length - 1];
-          newPath = path+'.'+ext;
-          newPath1 = newPath.substring(0, 7)+ '/' +newPath.substring(8, newPath.length);
-          fs.renameSync(path, newPath1);
-        }
-    
-        const {token} = req.cookies;
-        jwt.verify(token, secrete, {}, async (err,info) => {
-          if (err) throw err;
-          const {id,title,summary,content} = req.body;
-          const postDoc = await Post.findById(id);
-          const isAuthor = JSON.stringify(postDoc.author) === JSON.stringify(info.id);
-          if (!isAuthor) {
-            return res.status(400).json('you are not the author');
-          }
-          await postDoc.updateOne({
-            title,
-            summary,
-            content,
-            cover: newPath1 ? newPath1 : postDoc.cover,
-          });  
-          res.json(postDoc);
-        });
-    });
-    
-    app.get('/post/:id', async (req, res) => {
-        const {id} = req.params;
-        const postDoc = await Post.findById(id).populate('author', ['username']);
-        res.json(postDoc);
-    });
-  ```
+### After running the app, it should look like this:
+| Before Login                            | After login                           |
+| --------------------------------------- | ------------------------------------- |
+|![image](https://github.com/Vidyaranya-Gavai/Bloggie-MERN/assets/114799492/e811a6be-f6ea-4407-bb40-751b22857ccb)|![image](https://github.com/Vidyaranya-Gavai/Bloggie-MERN/assets/114799492/944285de-4c94-41d3-9110-7965131e85d4)|
+
+| Login Page                               | Register Page                         |
+| ---------------------------------------- | ------------------------------------- |
+|![image](https://github.com/Vidyaranya-Gavai/Bloggie-MERN/assets/114799492/fe443281-4af2-4084-8ba7-69de230426de)|![image](https://github.com/Vidyaranya-Gavai/Bloggie-MERN/assets/114799492/35ef36f6-0701-4131-90a9-4132e175e756)|
+
+| Post by loggen in user                   | Post by different user                |
+| ---------------------------------------- | ------------------------------------- |
+|![image](https://github.com/Vidyaranya-Gavai/Bloggie-MERN/assets/114799492/0b9b3907-9918-44e4-88fa-3d09067dfd14)|![image](https://github.com/Vidyaranya-Gavai/Bloggie-MERN/assets/114799492/47bb5952-34fd-4c92-baf6-277bdca9eaf4)|
+
+| Create Post                              | Edit Post                             |
+| ---------------------------------------- | ------------------------------------- |
+|![image](https://github.com/Vidyaranya-Gavai/Bloggie-MERN/assets/114799492/8194ccff-05e1-4ab6-8dcb-23fd14be1db2)|![image](https://github.com/Vidyaranya-Gavai/Bloggie-MERN/assets/114799492/dfa674dd-3c27-41b5-87be-e0f33c5ad9f0)|
